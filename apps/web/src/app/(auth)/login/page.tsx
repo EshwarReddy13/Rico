@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
+import { Card } from '@/components/ui/card'
 
 export default function LoginPage() {
   const { signInWithGoogle, user } = useAuth();
@@ -57,7 +58,7 @@ export default function LoginPage() {
           </svg>
         </span>
       </button>
-      <section className="bg-white/90 dark:bg-neutral-900/90 rounded-2xl shadow-2xl max-w-md w-full flex flex-col items-center gap-6 p-8 border border-yellow-100 dark:border-yellow-700">
+      <Card className="max-w-md w-full flex flex-col items-center gap-6 p-8">
         <h1 className="text-3xl font-bold text-neutral-800 dark:text-yellow-300 text-center mb-2">
           Sign in to <span className="text-yellow-500 dark:text-yellow-400">Rico</span>
         </h1>
@@ -125,7 +126,7 @@ export default function LoginPage() {
             Sign up
           </Link>
         </p>
-      </section>
+      </Card>
     </main>
   );
 } 

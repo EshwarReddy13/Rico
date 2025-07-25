@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { LogOut, FileText, Plus } from 'lucide-react'
+import { LogOut, FileText, Plus, Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 /**
@@ -86,40 +86,42 @@ export default function DashboardPage() {
       </button>
       <div className="w-full max-w-4xl flex flex-col gap-8 items-center">
         {/* Header */}
-        <header className="w-full bg-white/80 dark:bg-neutral-900/80 rounded-2xl shadow-xl border border-white/30 dark:border-neutral-700 px-8 py-6 flex items-center justify-between backdrop-blur mb-4">
-          <Link href="/" className="text-2xl font-bold text-neutral-900 dark:text-yellow-300 hover:text-primary transition-colors">
-            Rico 💎
-          </Link>
-          <div className="flex items-center gap-4">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback>
+        <Card className="w-full px-8 py-6 flex flex-row items-center justify-between mb-4">
+          <div className="flex items-center">
+            <Link href="/" className="text-2xl font-bold text-neutral-900 dark:text-yellow-300 hover:text-primary transition-colors">
+              Rico 💎
+            </Link>
+          </div>
+          <div className="flex items-center gap-3 sm:gap-5">
+            <Avatar className="h-10 w-10 border-2 border-yellow-400 dark:border-yellow-300 bg-white dark:bg-neutral-800">
+              <AvatarFallback className="text-lg font-semibold text-yellow-500 dark:text-yellow-300">
                 {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
+            <Button variant="default" size="default" onClick={handleSignOut} className="font-semibold px-4 py-2 bg-yellow-400 dark:bg-yellow-500 hover:bg-yellow-500 dark:hover:bg-yellow-400 text-black border-none">
+              <LogOut className="h-5 w-5 mr-2" />
               Sign out
             </Button>
           </div>
-        </header>
+        </Card>
 
         {/* Main content */}
         <main className="w-full flex flex-col gap-8 items-center">
-          <div className="w-full bg-white/80 dark:bg-neutral-900/80 rounded-2xl shadow-xl border border-white/30 dark:border-neutral-700 px-8 py-8 mb-4 backdrop-blur">
+          <Card className="w-full px-8 py-8 mb-4">
             <h1 className="text-3xl font-bold text-neutral-900 dark:text-yellow-300 mb-2 text-center">
               Welcome back, {user.displayName || 'there'}! 👋
             </h1>
             <p className="text-neutral-700 dark:text-neutral-200 text-center">
               Ready to start collaborating? Your documents await.
             </p>
-          </div>
+          </Card>
 
           {/* Quick actions */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 w-full mb-8">
-            <Card className="cursor-pointer hover:shadow-2xl transition bg-white dark:bg-neutral-900 border border-white/30 dark:border-neutral-700 shadow-xl rounded-2xl">
+            <Card className="cursor-pointer hover:shadow-2xl transition border border-white/30 dark:border-neutral-700 shadow-xl rounded-2xl">
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                 <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg mr-4">
-                  <Plus className="h-5 w-5 text-primary" />
+                  <Plus className="h-5 w-5 text-yellow-500" />
                 </div>
                 <div>
                   <CardTitle className="text-lg text-neutral-900 dark:text-yellow-300">New Document</CardTitle>
@@ -128,7 +130,7 @@ export default function DashboardPage() {
               </CardHeader>
             </Card>
 
-            <Card className="cursor-pointer hover:shadow-2xl transition bg-white dark:bg-neutral-900 border border-white/30 dark:border-neutral-700 shadow-xl rounded-2xl">
+            <Card className="cursor-pointer hover:shadow-2xl transition border border-white/30 dark:border-neutral-700 shadow-xl rounded-2xl">
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                 <div className="flex items-center justify-center w-10 h-10 bg-blue-500/10 rounded-lg mr-4">
                   <FileText className="h-5 w-5 text-blue-600" />
@@ -140,35 +142,73 @@ export default function DashboardPage() {
               </CardHeader>
             </Card>
 
-            <Card className="cursor-pointer hover:shadow-2xl transition bg-white dark:bg-neutral-900 border border-white/30 dark:border-neutral-700 shadow-xl rounded-2xl">
+            <Card className="cursor-pointer hover:shadow-2xl transition border border-white/30 dark:border-neutral-700 shadow-xl rounded-2xl">
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
-                <div className="flex items-center justify-center w-10 h-10 bg-green-500/10 rounded-lg mr-4">
-                  <FileText className="h-5 w-5 text-green-600" />
+                <div className="flex items-center justify-center w-10 h-10 bg-orange-500/10 rounded-lg mr-4">
+                  <Upload className="h-5 w-5 text-orange-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg text-neutral-900 dark:text-yellow-300">Shared with Me</CardTitle>
-                  <CardDescription className="text-neutral-700 dark:text-neutral-200">Collaborate with your team</CardDescription>
+                  <CardTitle className="text-lg text-neutral-900 dark:text-yellow-300">Upload Documents</CardTitle>
+                  <CardDescription className="text-neutral-700 dark:text-neutral-200">Import your existing files</CardDescription>
                 </div>
               </CardHeader>
             </Card>
           </div>
 
           {/* Coming soon placeholder */}
-          <Card className="w-full bg-white dark:bg-neutral-900 border border-white/30 dark:border-neutral-700 shadow-xl rounded-2xl">
-            <CardHeader>
-              <CardTitle className="text-neutral-900 dark:text-yellow-300">🚧 Coming Soon</CardTitle>
-              <CardDescription className="text-neutral-700 dark:text-neutral-200">
+          <Card className="w-full border border-white/30 dark:border-neutral-700 shadow-xl rounded-2xl">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="text-2xl font-bold text-neutral-900 dark:text-yellow-300 mb-2">
+                🚧 Coming Soon
+              </CardTitle>
+              <CardDescription className="text-lg text-neutral-700 dark:text-neutral-200">
                 Rico is under active development. Here's what's coming next:
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-2 text-sm text-neutral-700 dark:text-neutral-200">
-                <div>• Rich text editor with real-time collaboration</div>
-                <div>• Document management and folders</div>
-                <div>• Live cursors and presence indicators</div>
-                <div>• Comments and suggestions</div>
-                <div>• File exports (PDF, Word, Markdown)</div>
-                <div>• Team workspaces</div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50/50 dark:bg-blue-900/20">
+                  <span className="text-2xl">✍️</span>
+                  <div>
+                    <h4 className="font-semibold text-neutral-900 dark:text-yellow-300 mb-1">Rich Text Editor</h4>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-300">Real-time collaborative editing experience</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-green-50/50 dark:bg-green-900/20">
+                  <span className="text-2xl">📁</span>
+                  <div>
+                    <h4 className="font-semibold text-neutral-900 dark:text-yellow-300 mb-1">Document Management</h4>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-300">Organize files with folders and tags</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-purple-50/50 dark:bg-purple-900/20">
+                  <span className="text-2xl">👥</span>
+                  <div>
+                    <h4 className="font-semibold text-neutral-900 dark:text-yellow-300 mb-1">Live Collaboration</h4>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-300">See cursors and presence indicators</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-yellow-50/50 dark:bg-yellow-900/20">
+                  <span className="text-2xl">💬</span>
+                  <div>
+                    <h4 className="font-semibold text-neutral-900 dark:text-yellow-300 mb-1">Comments & Reviews</h4>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-300">Add suggestions and feedback</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-red-50/50 dark:bg-red-900/20">
+                  <span className="text-2xl">📤</span>
+                  <div>
+                    <h4 className="font-semibold text-neutral-900 dark:text-yellow-300 mb-1">Export Options</h4>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-300">PDF, Word, and Markdown formats</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-indigo-50/50 dark:bg-indigo-900/20">
+                  <span className="text-2xl">🏢</span>
+                  <div>
+                    <h4 className="font-semibold text-neutral-900 dark:text-yellow-300 mb-1">Team Workspaces</h4>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-300">Collaborate with your organization</p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

@@ -3,12 +3,17 @@
 
 body {
   position: relative;
+  background: linear-gradient(to bottom right, #f3f4f6, #fef3c7);
 }
+
+body.dark {
+  background: linear-gradient(to bottom right, #171717, #0c0a09);
+}
+
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  z-index: 1;
   pointer-events: none;
   /* border: 2px solid red;  Removed debug border */
   background-image:
@@ -17,6 +22,7 @@ body::before {
   background-size: 42px 42px;
   opacity: 0.5;
 }
+
 .dark body::before {
   background-image:
     repeating-linear-gradient(to right, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 42px),

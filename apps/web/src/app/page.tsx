@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import Link from "next/link";
+import { Card } from '@/components/ui/card'
 
 export default function Page() {
   // Toggle dark mode by adding/removing 'dark' class on <html>
@@ -49,7 +50,7 @@ export default function Page() {
           </svg>
         </span>
       </button>
-      <section className="bg-white/90 dark:bg-neutral-900/90 rounded-2xl shadow-2xl max-w-md w-full flex flex-col items-center gap-6 p-8 border border-yellow-100 dark:border-yellow-700">
+      <Card className="max-w-md w-full flex flex-col items-center gap-6 p-8">
         <h1 className="text-4xl font-extrabold text-neutral-800 dark:text-yellow-300 text-center drop-shadow-sm">
           Welcome to <span className="text-yellow-500 dark:text-yellow-400">Rico</span>
         </h1>
@@ -64,7 +65,7 @@ export default function Page() {
         >
           Get Started
         </Link>
-      </section>
+      </Card>
     </main>
   );
 } 

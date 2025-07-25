@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@rico/ui', '@rico/database', '@rico/config'],
+  transpilePackages: ['@rico/editor'],
 }
 
 module.exports = nextConfig 

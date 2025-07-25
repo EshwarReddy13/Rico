@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/contexts/auth-context'
+import LoadingScreen from '@/components/LoadingScreen'
+import { useEffect, useState } from 'react'
+import ClientRoot from '@/components/ClientRoot'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -31,7 +34,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className={inter.className}>
         <AuthProvider>
           <div id="root" className="min-h-screen bg-background text-foreground">
-            {children}
+            <ClientRoot>{children}</ClientRoot>
           </div>
         </AuthProvider>
       </body>
