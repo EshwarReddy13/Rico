@@ -8,6 +8,8 @@ import {
   sendPasswordResetEmail,
   updateProfile as firebaseUpdateProfile,
   onAuthStateChanged,
+  signInWithPopup,
+  GoogleAuthProvider,
   type User as FirebaseUser,
 } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
@@ -117,6 +119,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
+  /**
+   * Sign in with Google using Firebase Auth
+   */
+  const signInWithGoogle = async (): Promise<void> => {
+    try {
+      const provider = new GoogleAuthProvider()
+      await signInWithPopup(auth, provider)
+      // The onAuthStateChanged listener will handle setting the user state
+    } catch (error: any) {
+      throw new Error(error.message)
+    }
+  }
+
   // Listen for authentication state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
@@ -139,6 +154,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signOut,
     resetPassword,
     updateProfile,
+    signInWithGoogle, // Add Google sign-in to context
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

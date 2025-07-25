@@ -1,9 +1,2 @@
-import type { Config } from 'tailwindcss'
-
-const config: Config = {
-  content: [
-    './src/**/*.{js,ts,jsx,tsx,mdx}',
-  ],
-}
-
-export default config 
+// Tailwind CSS v4+ uses CSS-first configuration.
+export default {};
