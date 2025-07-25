@@ -8,11 +8,11 @@
     "clean": "turbo clean"
   },
   "devDependencies": {
-    "turbo": "latest"
+    "turbo": "^2.5.5"
   },
   "packageManager": "npm@10.2.0",
   "workspaces": [
     "apps/*",
     "packages/*"
   ]
-} 
+}
