@@ -2,11 +2,36 @@
 
 import { RicoEditor } from '@rico/editor'
 import { useEffect, useState } from 'react'
-import { useAuth } from '../../contexts/auth-context'
+import { useAuth } from '../../../contexts/auth-context'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 
-export default function DocumentPage() {
+export default function DynamicDocumentPage() {
   const [isDark, setIsDark] = useState(false)
+  const [key, setKey] = useState(0) // Force re-render key
   const { user } = useAuth()
+  const params = useParams()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const docId = params.docId as string
+  const title = searchParams.get('title')
+
+  // Listen for route changes and force re-render
+  useEffect(() => {
+    const handleRouteChange = () => {
+      console.log('Route changed, forcing re-render')
+      setKey(prev => prev + 1)
+    }
+
+    // Force re-render when component mounts or URL changes
+    handleRouteChange()
+
+    // Listen for popstate (back/forward button)
+    window.addEventListener('popstate', handleRouteChange)
+    
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange)
+    }
+  }, [docId, title])
 
   function toggleDarkMode() {
     if (typeof window !== 'undefined') {
@@ -43,6 +68,14 @@ export default function DocumentPage() {
     )
   }
 
+  if (!docId) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600 dark:text-gray-400">Document ID not found</p>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen relative p-10">
       {/* Dark mode toggle button */}
@@ -74,16 +107,18 @@ export default function DocumentPage() {
 
       <div className="container mx-auto py-8 relative z-10">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-yellow-300 mb-2">Rico Editor Demo</h1>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-yellow-300 mb-2">Document Editor</h1>
           <p className="text-gray-600 dark:text-neutral-200">
-            Testing the Firebase-enabled RicoEditor with real-time saving
+            {title ? `Editing: ${title}` : `Editing document: ${docId}`}
           </p>
         </div>
         
         <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-lg overflow-hidden">
           <RicoEditor 
+            key={`${docId}-${title}-${key}`} // Include key to force re-render
             user={user.email}
-            file="sample-document-123"
+            file={docId}
+            initialContent={title ? { title } : undefined}
             theme={isDark ? 'dark' : 'light'}
             onSave={handleSave}
             onModeChange={handleModeChange}
@@ -92,4 +127,4 @@ export default function DocumentPage() {
       </div>
     </div>
   )
-}
+} 

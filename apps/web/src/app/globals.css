@@ -1,21 +1,30 @@
-@variant dark (&:where(.dark, .dark *));
+/* app/globals.css */
+
+/* 1. Import the Tailwind layers IN THIS ORDER. */
 @import "tailwindcss";
 
+/* 2. Your custom CSS comes AFTER the Tailwind imports. */
+
+/* Base body styling */
 body {
   position: relative;
-  background: linear-gradient(to bottom right, #f3f4f6, #fef3c7);
+  /* Use Tailwind classes for the gradient for better consistency */
+  @apply bg-gradient-to-br from-gray-100 to-amber-100;
 }
 
-body.dark {
-  background: linear-gradient(to bottom right, #171717, #0c0a09);
+/* Dark mode body background */
+html.dark body {
+  /* Use Tailwind classes for the dark gradient */
+  @apply bg-gradient-to-br from-neutral-900 to-stone-950;
 }
 
+/* Grid background for light mode */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
-  /* border: 2px solid red;  Removed debug border */
+  z-index: -1;
   background-image:
     repeating-linear-gradient(to right, rgba(0,0,0,0.06) 0, rgba(0,0,0,0.06) 1px, transparent 1px, transparent 42px),
     repeating-linear-gradient(to bottom, rgba(0,0,0,0.06) 0, rgba(0,0,0,0.06) 1px, transparent 1px, transparent 42px);
@@ -23,11 +32,12 @@ body::before {
   opacity: 0.5;
 }
 
-.dark body::before {
+/* Grid background for dark mode */
+html.dark body::before {
   background-image:
     repeating-linear-gradient(to right, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 42px),
     repeating-linear-gradient(to bottom, rgba(255,255,255,0.08) 0, rgba(255,255,255,0.08) 1px, transparent 1px, transparent 42px);
-  opacity: 0.22;
+  opacity: 0.4;
 }
 
-/* You can add your custom CSS below this line */ 
+/* You can add your custom CSS below this line */

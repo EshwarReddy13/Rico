@@ -4,18 +4,22 @@ import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LogOut, FileText, Plus, Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { FileNamePrompt } from '@/components/FileNamePrompt'
+import { FirebaseService, DocumentService, generateUniqueDocumentId } from '@rico/editor'
+import { useNavigation } from '@/hooks/useNavigation'
 
 /**
  * Dashboard page - placeholder for authenticated users
  */
 export default function DashboardPage() {
   const { user, signOut } = useAuth()
-  const router = useRouter()
+  const { navigate } = useNavigation()
   const [isDark, setIsDark] = useState(false)
+  const [showFileNamePrompt, setShowFileNamePrompt] = useState(false)
+  const [isCreatingDocument, setIsCreatingDocument] = useState(false)
 
   function toggleDarkMode() {
     if (typeof window !== 'undefined') {
@@ -37,10 +41,53 @@ export default function DashboardPage() {
   const handleSignOut = async () => {
     try {
       await signOut()
-      router.push('/')
+      // Use proper navigation for browser history handling
+      navigate('/')
     } catch (error) {
       console.error('Error signing out:', error)
     }
+  }
+
+  const handleNewDocument = () => {
+    setShowFileNamePrompt(true)
+  }
+
+  const handleFileNameConfirm = async (fileName: string) => {
+    setIsCreatingDocument(true)
+    
+    try {
+      // Initialize Firebase service
+      const firebaseService = new FirebaseService()
+      firebaseService.initialize()
+      
+      // Create document service
+      const documentService = new DocumentService(firebaseService)
+      
+      // Generate unique document ID from the Rico Editor package
+      const docId = await generateUniqueDocumentId(documentService)
+      
+      // Use proper navigation for browser history handling
+      navigate(`/document/${docId}?title=${encodeURIComponent(fileName)}`)
+    } catch (error) {
+      console.error('Failed to create document:', error)
+      // Fallback to simple ID generation if Firebase is not available
+      const now = new Date()
+      const dateStr = now.getFullYear().toString() + 
+                     (now.getMonth() + 1).toString().padStart(2, '0') + 
+                     now.getDate().toString().padStart(2, '0') + 
+                     now.getHours().toString().padStart(2, '0') + 
+                     now.getMinutes().toString().padStart(2, '0') + 
+                     now.getSeconds().toString().padStart(2, '0')
+      const fallbackDocId = `doc_${dateStr}_${Math.random().toString(36).substr(2, 9)}`
+      navigate(`/document/${fallbackDocId}?title=${encodeURIComponent(fileName)}`)
+    } finally {
+      setShowFileNamePrompt(false)
+      setIsCreatingDocument(false)
+    }
+  }
+
+  const handleFileNameCancel = () => {
+    setShowFileNamePrompt(false)
   }
 
   if (!user) {
@@ -57,7 +104,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-yellow-50 dark:from-neutral-900 dark:to-neutral-950 p-4">
+    <div className="min-h-screen flex items-center justify-center p-10">
       {/* Dark mode toggle button */}
       <button
         onClick={toggleDarkMode}
@@ -118,7 +165,10 @@ export default function DashboardPage() {
 
           {/* Quick actions */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 w-full mb-8">
-            <Card className="cursor-pointer hover:shadow-2xl transition border border-white/30 dark:border-neutral-700 shadow-xl rounded-2xl">
+            <Card 
+              className="cursor-pointer hover:shadow-2xl transition border border-white/30 dark:border-neutral-700 shadow-xl rounded-2xl"
+              onClick={handleNewDocument}
+            >
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                 <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg mr-4">
                   <Plus className="h-5 w-5 text-yellow-500" />
@@ -214,6 +264,14 @@ export default function DashboardPage() {
           </Card>
         </main>
       </div>
+
+      {/* File Name Prompt Modal */}
+      <FileNamePrompt
+        isOpen={showFileNamePrompt}
+        onClose={handleFileNameCancel}
+        onConfirm={handleFileNameConfirm}
+        isLoading={isCreatingDocument}
+      />
     </div>
   )
 } 

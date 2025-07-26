@@ -2,19 +2,20 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from '@/contexts/auth-context'
-import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
+import { useNavigation } from '@/hooks/useNavigation'
 
 export default function LoginPage() {
   const { signInWithGoogle, user } = useAuth();
   const [googleError, setGoogleError] = useState<string | null>(null);
-  const router = useRouter();
+  const { navigate } = useNavigation();
 
   useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      // Use proper navigation for browser history handling
+      navigate('/dashboard');
     }
-  }, [user, router]);
+  }, [user, navigate]);
 
   function toggleDarkMode() {
     if (typeof window !== "undefined") {
@@ -31,7 +32,7 @@ export default function LoginPage() {
   }, []);
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-yellow-50 dark:from-neutral-900 dark:to-neutral-950 p-4 relative">
+    <main className="min-h-screen flex items-center justify-center  p-4 relative">
       {/* Dark mode toggle button */}
       <button
         onClick={toggleDarkMode}
