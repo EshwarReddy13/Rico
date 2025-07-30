@@ -1,5 +1,5 @@
 import { initializeApp, FirebaseApp, getApps } from 'firebase/app'
-import { getDatabase, Database, ref, set, get, push, remove } from 'firebase/database'
+import { getDatabase, Database, ref, set, get, remove, query, orderByChild, equalTo, onValue, off } from 'firebase/database'
 
 export class FirebaseService {
   private app: FirebaseApp | null = null
@@ -8,7 +8,6 @@ export class FirebaseService {
 
   initialize(): void {
     if (this.isInitialized) {
-      console.warn('FirebaseService already initialized')
       return
     }
 
@@ -20,11 +19,10 @@ export class FirebaseService {
         this.app = existingApps[0]
         this.database = getDatabase(this.app)
         this.isInitialized = true
-        console.log('FirebaseService using existing app')
+        console.log('✅ Firebase Realtime Database using existing app')
         return
       }
 
-      // Use environment variables directly
       const firebaseConfig = {
         apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
         authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
@@ -32,77 +30,143 @@ export class FirebaseService {
         projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
         storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
         messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-      }
-
-      // Check if all required config is available
-      if (!firebaseConfig.apiKey || !firebaseConfig.databaseURL) {
-        console.warn('Firebase config not available, running in offline mode')
-        return
+        appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
       }
 
       this.app = initializeApp(firebaseConfig)
       this.database = getDatabase(this.app)
       this.isInitialized = true
-      console.log('FirebaseService initialized successfully')
-    } catch (error) {
-      console.error('Failed to initialize FirebaseService:', error)
-      // Don't throw error, just run in offline mode
-    }
-  }
 
-  getDatabase(): Database | null {
-    return this.database
+      console.log('✅ Firebase Realtime Database initialized successfully')
+    } catch (error) {
+      console.error('❌ Failed to initialize Firebase:', error)
+      throw error
+    }
   }
 
   isReady(): boolean {
     return this.isInitialized && this.database !== null
   }
 
-  // Helper methods for database operations
   async setDocument(path: string, data: any): Promise<void> {
     if (!this.database) {
-      console.warn('Firebase not available, skipping save')
-      return
+      throw new Error('Firebase not initialized')
     }
-    
-    try {
-      await set(ref(this.database, path), {
-        ...data,
-        updatedAt: new Date().toISOString()
-      })
-    } catch (error) {
-      console.error('Error setting document:', error)
-      throw error
-    }
+
+    const docRef = ref(this.database, path)
+    await set(docRef, data)
   }
 
   async getDocument(path: string): Promise<any> {
     if (!this.database) {
-      console.warn('Firebase not available, returning null')
-      return null
+      throw new Error('Firebase not initialized')
+    }
+
+    const docRef = ref(this.database, path)
+    const snapshot = await get(docRef)
+    
+    if (snapshot.exists()) {
+      return snapshot.val()
     }
     
-    try {
-      const snapshot = await get(ref(this.database, path))
-      return snapshot.exists() ? snapshot.val() : null
-    } catch (error) {
-      console.error('Error getting document:', error)
-      return null
-    }
+    return null
   }
 
   async removeDocument(path: string): Promise<void> {
     if (!this.database) {
-      console.warn('Firebase not available, skipping delete')
-      return
+      throw new Error('Firebase not initialized')
+    }
+
+    const docRef = ref(this.database, path)
+    await remove(docRef)
+  }
+
+  async getAllDocuments(path: string): Promise<any[]> {
+    if (!this.database) {
+      throw new Error('Firebase not initialized')
+    }
+    const docRef = ref(this.database, path)
+    const snapshot = await get(docRef)
+    
+    const documents: any[] = []
+    if (snapshot.exists()) {
+      snapshot.forEach((childSnapshot) => {
+        documents.push({
+          id: childSnapshot.key,
+          ...childSnapshot.val()
+        })
+      })
     }
     
-    try {
-      await remove(ref(this.database, path))
-    } catch (error) {
-      console.error('Error removing document:', error)
-      throw error
+    return documents
+  }
+
+  async queryDocuments(path: string, field: string, value: string): Promise<any[]> {
+    if (!this.database) {
+      throw new Error('Firebase not initialized')
+    }
+
+    const docRef = ref(this.database, path)
+    const queryRef = query(docRef, orderByChild(field), equalTo(value))
+    const snapshot = await get(queryRef)
+    
+    const documents: any[] = []
+    if (snapshot.exists()) {
+      snapshot.forEach((childSnapshot) => {
+        documents.push({
+          id: childSnapshot.key,
+          ...childSnapshot.val()
+        })
+      })
+    }
+    
+    return documents
+  }
+
+  onDocumentChange(path: string, callback: (data: any) => void): () => void {
+    if (!this.database) {
+      throw new Error('Firebase not initialized')
+    }
+
+    const docRef = ref(this.database, path)
+    onValue(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        callback(snapshot.val())
+      } else {
+        callback(null)
+      }
+    })
+
+    // Return unsubscribe function
+    return () => {
+      off(docRef)
+    }
+  }
+
+  onQueryChange(path: string, field: string, value: string, callback: (data: any[]) => void): () => void {
+    if (!this.database) {
+      throw new Error('Firebase not initialized')
+    }
+
+    const docRef = ref(this.database, path)
+    const queryRef = query(docRef, orderByChild(field), equalTo(value))
+    
+    onValue(queryRef, (snapshot) => {
+      const documents: any[] = []
+      if (snapshot.exists()) {
+        snapshot.forEach((childSnapshot) => {
+          documents.push({
+            id: childSnapshot.key,
+            ...childSnapshot.val()
+          })
+        })
+      }
+      callback(documents)
+    })
+
+    // Return unsubscribe function
+    return () => {
+      off(queryRef)
     }
   }
 } 

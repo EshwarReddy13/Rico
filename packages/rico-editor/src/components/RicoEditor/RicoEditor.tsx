@@ -14,10 +14,12 @@ export function RicoEditor({
   theme = 'light',
   className,
   onSave,
-  onModeChange
+  onModeChange,
+  onClose
 }: RicoEditorProps) {
+  const linearEditorRef = React.useRef<any>(null)
   const [state, setState] = useState<RicoEditorState>({
-    isLoading: !initialContent, // Only show loading if no initial content
+    isLoading: !initialContent,
     mode,
     content: initialContent || null,
     documentTitle: initialContent?.title || 'Untitled Document',
@@ -25,101 +27,59 @@ export function RicoEditor({
     isDirty: false
   })
 
-  const [isFirebaseReady, setIsFirebaseReady] = useState(false)
   const [document, setDocument] = useState<any>(null)
   const [currentFile, setCurrentFile] = useState(file)
+  const [servicesReady, setServicesReady] = useState(false)
 
-  // Use refs to prevent recreation of services
   const firebaseServiceRef = useRef<FirebaseService | undefined>(undefined)
   const documentServiceRef = useRef<DocumentService | undefined>(undefined)
 
-  // Initialize services once
+  // Initialize services
   useEffect(() => {
-    if (!firebaseServiceRef.current) {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return; // Do nothing on the server.
+    }
+
+    console.log('🚀 RicoEditor mounted on CLIENT. Setting up services.')
+
+    // Use singleton pattern to prevent multiple Firebase initializations
+    if (!(window as any).__firebaseService) {
       firebaseServiceRef.current = new FirebaseService()
       firebaseServiceRef.current.initialize()
-      documentServiceRef.current = new DocumentService(firebaseServiceRef.current)
+      ;(window as any).__firebaseService = firebaseServiceRef.current
+    } else {
+      firebaseServiceRef.current = (window as any).__firebaseService
     }
-  }, [])
 
-  // Handle file prop changes (for navigation)
-  useEffect(() => {
-    if (file !== currentFile) {
-      console.log('File changed from', currentFile, 'to', file)
-      setCurrentFile(file)
-      setDocument(null) // Reset document state
-      setState(prev => ({ ...prev, isLoading: true })) // Reset loading state
-    }
-  }, [file, currentFile])
-
-  // Handle initialContent changes (for navigation)
-  useEffect(() => {
-    if (initialContent && initialContent !== state.content) {
-      console.log('Initial content changed, updating state')
-      setState(prev => ({
-        ...prev,
-        content: initialContent,
-        documentTitle: initialContent.title || `Document ${currentFile}`
-      }))
-    }
-  }, [initialContent, currentFile])
-
-  // Check Firebase ready status
-  useEffect(() => {
-    const checkFirebase = () => {
+    if (!(window as any).__documentService) {
       if (firebaseServiceRef.current) {
-        const ready = firebaseServiceRef.current.isReady()
-        console.log('Firebase check - ready:', ready)
-        
-        setIsFirebaseReady(ready)
-        if (!ready) {
-          // Retry after 2 seconds if not ready
-          setTimeout(checkFirebase, 2000)
-        }
+        documentServiceRef.current = new DocumentService(firebaseServiceRef.current)
+        ;(window as any).__documentService = documentServiceRef.current
       }
+    } else {
+      documentServiceRef.current = (window as any).__documentService
     }
-    
-    // Start checking after a short delay
-    const timer = setTimeout(checkFirebase, 1000)
-    
-    // Fallback after 10 seconds
-    const fallbackTimer = setTimeout(() => {
-      console.warn('Firebase not ready after 10 seconds, proceeding in offline mode')
-      setIsFirebaseReady(false)
-    }, 10000)
-    
-    return () => {
-      clearTimeout(timer)
-      clearTimeout(fallbackTimer)
-    }
+
+    setServicesReady(true)
   }, [])
 
   // Handle document loading/creation
   useEffect(() => {
-    if (!documentServiceRef.current) {
-      console.log('Document service not initialized, using initial content')
-      setState(prev => ({
-        ...prev,
-        isLoading: false,
-        content: initialContent || { type: 'doc', content: [] },
-        documentTitle: initialContent?.title || `Document ${currentFile}`
-      }))
+    // Wait for services to be initialized
+    if (!servicesReady || !documentServiceRef.current) {
+      console.log('Document service not ready, waiting...')
       return
     }
 
-    // Load or create document
     const loadOrCreateDocument = async () => {
       try {
-        // Only show loading if we don't have initial content
         if (!initialContent) {
           setState(prev => ({ ...prev, isLoading: true }))
         }
         
-        // Try to load existing document
         const existingDoc = await documentServiceRef.current!.loadDocument(currentFile)
         
         if (existingDoc) {
-          // Document exists, load it
           setDocument(existingDoc)
           setState(prev => ({
             ...prev,
@@ -129,15 +89,36 @@ export function RicoEditor({
             lastSaved: new Date(existingDoc.updatedAt)
           }))
         } else {
-          // Document doesn't exist, create it
           const documentTitle = initialContent?.title || `Document ${currentFile}`
+          
+          // Ensure we have proper content structure, not just a title object
+          let properContent = initialContent
+          if (initialContent && typeof initialContent === 'object' && initialContent.title && !initialContent.type) {
+            // If we only have a title object, create proper document structure
+            properContent = {
+              type: 'doc',
+              content: [
+                {
+                  type: 'page',
+                  content: [
+                    {
+                      type: 'paragraph',
+                      content: [{ type: 'text', text: 'Start writing your document...' }]
+                    }
+                  ]
+                }
+              ]
+            }
+          } else if (!initialContent) {
+            properContent = { type: 'doc', content: [] }
+          }
+          
           const newDoc = await documentServiceRef.current!.createDocument({
             title: documentTitle,
-            content: initialContent || { type: 'doc', content: [] },
+            content: properContent,
             userId: user,
             docId: currentFile
           })
-          
           setDocument(newDoc)
           setState(prev => ({
             ...prev,
@@ -149,7 +130,6 @@ export function RicoEditor({
         }
       } catch (error) {
         console.error('Document loading/creation failed:', error)
-        // Even if Firebase fails, proceed with initial content
         setState(prev => ({
           ...prev,
           isLoading: false,
@@ -160,11 +140,29 @@ export function RicoEditor({
     }
 
     loadOrCreateDocument()
-  }, [isFirebaseReady, currentFile, user, initialContent])
+  }, [currentFile, user, initialContent, servicesReady]) // Use servicesReady instead of ref
 
-  // Auto-save functionality (internal)
+  
+  // Handle file prop changes (for navigation within the app)
+  useEffect(() => {
+    if (file !== currentFile) {
+      console.log('File prop changed from', currentFile, 'to', file, 'Resetting component state.')
+      setCurrentFile(file)
+      setDocument(null)
+      setState({
+        isLoading: !initialContent,
+        mode,
+        content: initialContent || null,
+        documentTitle: initialContent?.title || 'Untitled Document',
+        lastSaved: null,
+        isDirty: false
+      })
+    }
+  }, [file, initialContent, mode])
+
+  // Auto-save functionality
   useAutoSave(state.content, (content) => {
-    if (isFirebaseReady && document && documentServiceRef.current) {
+    if (documentServiceRef.current && document) {
       documentServiceRef.current.autoSaveDocument(currentFile, content).catch(error => {
         console.error('Auto-save failed:', error)
       })
@@ -174,7 +172,7 @@ export function RicoEditor({
         isDirty: false 
       }))
     }
-  }, 3000) // Every 3 seconds
+  }, 5000)
 
   const handleModeToggle = (newMode: 'linear' | 'block') => {
     setState(prev => ({ ...prev, mode: newMode }))
@@ -191,7 +189,7 @@ export function RicoEditor({
 
   const handleSave = async (content: any) => {
     try {
-      if (isFirebaseReady && document && documentServiceRef.current) {
+      if (documentServiceRef.current && document) {
         await documentServiceRef.current.saveDocument(currentFile, content, state.documentTitle)
         setState(prev => ({ 
           ...prev, 
@@ -199,11 +197,9 @@ export function RicoEditor({
           isDirty: false 
         }))
       }
-      
-      // Call external onSave callback
       onSave?.(content)
     } catch (error) {
-      console.error('Save failed:', error)
+      console.error('Manual save failed:', error)
     }
   }
 
@@ -236,31 +232,43 @@ export function RicoEditor({
 
   return (
     <div 
-      className={`rico-editor h-full flex flex-col ${theme} ${className || ''}`}
+      className={`rico-editor h-screen w-full flex flex-col ${theme} ${className || ''}`}
       style={{ 
-        backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff' 
+        backgroundColor: theme === 'dark' ? '#1f2937' : '#f8f9fa' 
       }}
     >
       <Toolbar 
-        mode={state.mode}
-        onModeChange={handleModeToggle}
-        theme={theme}
-        onSave={() => handleSave(state.content)}
-        lastSaved={state.lastSaved}
-        isDirty={state.isDirty}
-      />
+          mode={state.mode}
+          onModeChange={handleModeToggle}
+          theme={theme}
+          onSave={() => handleSave(state.content)}
+          onClose={async () => {
+            onClose?.(); 
+          }}
+          lastSaved={state.lastSaved}
+          isDirty={state.isDirty}
+          editor={linearEditorRef.current?.editor}
+        />
       
-      {state.mode === 'linear' ? (
-        <LinearEditor 
-          content={state.content}
-          onChange={handleContentChange}
-        />
-      ) : (
-        <BlockEditor 
-          blocks={state.content}
-          onChange={handleContentChange}
-        />
-      )}
+      <div className="flex-1 flex justify-center overflow-auto bg-gray-50 dark:bg-gray-900">
+        <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+          <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg min-h-full">
+            {state.mode === 'linear' ? (
+              <LinearEditor 
+                ref={linearEditorRef}
+                content={state.content}
+                onChange={handleContentChange}
+                theme={theme}
+              />
+            ) : (
+              <BlockEditor 
+                blocks={state.content}
+                onChange={handleContentChange}
+              />
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 } 

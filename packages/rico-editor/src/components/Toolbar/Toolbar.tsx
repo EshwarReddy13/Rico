@@ -4,8 +4,19 @@ import { FormatButtons } from './components/FormatButtons'
 import { ModeToggle } from './components/ModeToggle'
 import { SaveIndicator } from './components/SaveIndicator'
 import { SaveButton } from './components/SaveButton'
+import { CloseButton } from './components/CloseButton'
 
-export function Toolbar({ mode, onModeChange, theme, onSave, lastSaved, isDirty }: ToolbarProps) {
+
+export function Toolbar({ 
+  mode, 
+  onModeChange, 
+  theme, 
+  onSave, 
+  onClose,
+  lastSaved, 
+  isDirty,
+  editor
+}: ToolbarProps) {
   return (
     <div
       className="rico-toolbar border-b p-2 flex items-center justify-between"
@@ -15,7 +26,7 @@ export function Toolbar({ mode, onModeChange, theme, onSave, lastSaved, isDirty 
       }}
     >
       <div className="flex items-center gap-2">
-        <FormatButtons theme={theme} />
+        <FormatButtons theme={theme} editor={editor} />
       </div>
 
       <div className="flex items-center gap-2">
@@ -30,6 +41,14 @@ export function Toolbar({ mode, onModeChange, theme, onSave, lastSaved, isDirty 
           isDirty={isDirty}
         />
         <SaveIndicator theme={theme} />
+
+        {onClose && (
+          <CloseButton
+            onClose={onClose}
+            theme={theme}
+          />
+        )}
+
       </div>
     </div>
   )

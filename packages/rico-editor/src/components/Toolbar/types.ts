@@ -5,4 +5,6 @@ export interface ToolbarProps {
   lastSaved?: Date | null
   isDirty?: boolean
   onSave?: () => void
+  onClose?: () => Promise<void>
+  editor?: any
 } 

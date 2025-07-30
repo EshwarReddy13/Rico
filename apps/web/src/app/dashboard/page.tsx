@@ -8,7 +8,6 @@ import Link from 'next/link'
 import { LogOut, FileText, Plus, Upload } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { FileNamePrompt } from '@/components/FileNamePrompt'
-import { FirebaseService, DocumentService, generateUniqueDocumentId } from '@rico/editor'
 import { useNavigation } from '@/hooks/useNavigation'
 
 /**
@@ -56,17 +55,17 @@ export default function DashboardPage() {
     setIsCreatingDocument(true)
     
     try {
-      // Initialize Firebase service
-      const firebaseService = new FirebaseService()
-      firebaseService.initialize()
+      // Generate a unique document ID
+      const now = new Date()
+      const dateStr = now.getFullYear().toString() + 
+                     (now.getMonth() + 1).toString().padStart(2, '0') + 
+                     now.getDate().toString().padStart(2, '0') + 
+                     now.getHours().toString().padStart(2, '0') + 
+                     now.getMinutes().toString().padStart(2, '0') + 
+                     now.getSeconds().toString().padStart(2, '0')
+      const docId = `rico_${dateStr}_${Math.random().toString(36).substr(2, 9)}`
       
-      // Create document service
-      const documentService = new DocumentService(firebaseService)
-      
-      // Generate unique document ID from the Rico Editor package
-      const docId = await generateUniqueDocumentId(documentService)
-      
-      // Use proper navigation for browser history handling
+      // Navigate to the document page - RicoEditor will handle document creation
       navigate(`/document/${docId}?title=${encodeURIComponent(fileName)}`)
     } catch (error) {
       console.error('Failed to create document:', error)
@@ -78,7 +77,7 @@ export default function DashboardPage() {
                      now.getHours().toString().padStart(2, '0') + 
                      now.getMinutes().toString().padStart(2, '0') + 
                      now.getSeconds().toString().padStart(2, '0')
-      const fallbackDocId = `doc_${dateStr}_${Math.random().toString(36).substr(2, 9)}`
+      const fallbackDocId = `rico_${dateStr}_${Math.random().toString(36).substr(2, 9)}`
       navigate(`/document/${fallbackDocId}?title=${encodeURIComponent(fileName)}`)
     } finally {
       setShowFileNamePrompt(false)
@@ -134,10 +133,18 @@ export default function DashboardPage() {
       <div className="w-full max-w-4xl flex flex-col gap-8 items-center">
         {/* Header */}
         <Card className="w-full px-8 py-6 flex flex-row items-center justify-between mb-4">
-          <div className="flex items-center">
+          <div className="flex items-center gap-6">
             <Link href="/" className="text-2xl font-bold text-neutral-900 dark:text-yellow-300 hover:text-primary transition-colors">
               Rico 💎
             </Link>
+            <div className="flex items-center gap-4">
+              <Link 
+                href="/documents" 
+                className="text-neutral-700 dark:text-neutral-200 hover:text-yellow-600 dark:hover:text-yellow-400 transition-colors font-medium"
+              >
+                Documents
+              </Link>
+            </div>
           </div>
           <div className="flex items-center gap-3 sm:gap-5">
             <Avatar className="h-10 w-10 border-2 border-yellow-400 dark:border-yellow-300 bg-white dark:bg-neutral-800">
@@ -180,14 +187,17 @@ export default function DashboardPage() {
               </CardHeader>
             </Card>
 
-            <Card className="cursor-pointer hover:shadow-2xl transition border border-white/30 dark:border-neutral-700 shadow-xl rounded-2xl">
+            <Card 
+              className="cursor-pointer hover:shadow-2xl transition border border-white/30 dark:border-neutral-700 shadow-xl rounded-2xl"
+              onClick={() => navigate('/documents')}
+            >
               <CardHeader className="flex flex-row items-center space-y-0 pb-2">
                 <div className="flex items-center justify-center w-10 h-10 bg-blue-500/10 rounded-lg mr-4">
                   <FileText className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg text-neutral-900 dark:text-yellow-300">Recent Documents</CardTitle>
-                  <CardDescription className="text-neutral-700 dark:text-neutral-200">Continue where you left off</CardDescription>
+                  <CardTitle className="text-lg text-neutral-900 dark:text-yellow-300">All Documents</CardTitle>
+                  <CardDescription className="text-neutral-700 dark:text-neutral-200">View and manage your documents</CardDescription>
                 </div>
               </CardHeader>
             </Card>

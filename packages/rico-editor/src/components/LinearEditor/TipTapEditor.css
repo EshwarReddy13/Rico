@@ -1,0 +1,41 @@
+/* TipTapEditor.css */
+
+.tiptap-editor {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.ProseMirror {
+  outline: none;
+  background: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 40px;
+  box-sizing: border-box;
+  width: 794px; /* A4 width */
+  margin: 0 auto;
+  min-height: 1200px;
+  border: 1px solid #e0e0e0;
+}
+
+/* Ensure content inside the editor breaks words correctly */
+.ProseMirror p, .ProseMirror h1, .ProseMirror h2 {
+  word-wrap: break-word;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure proper spacing for content */
+.ProseMirror p {
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.ProseMirror h1, .ProseMirror h2, .ProseMirror h3, .ProseMirror h4, .ProseMirror h5, .ProseMirror h6 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+} 

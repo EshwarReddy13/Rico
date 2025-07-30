@@ -1,5 +1,3 @@
-import { FirebaseConfig } from '../../services/firebase'
-
 export interface RicoEditorProps {
   user: string
   file: string
@@ -9,6 +7,7 @@ export interface RicoEditorProps {
   className?: string
   onSave?: (content: any) => void
   onModeChange?: (mode: 'linear' | 'block') => void
+  onClose?: () => void
 }
 
 export interface RicoEditorState {
