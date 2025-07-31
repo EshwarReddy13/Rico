@@ -187,6 +187,14 @@ export function RicoEditor({
     }))
   }
 
+  const handleTitleChange = (title: string) => {
+    setState(prev => ({ 
+      ...prev, 
+      documentTitle: title, 
+      isDirty: true 
+    }))
+  }
+
   const handleSave = async (content: any) => {
     try {
       if (documentServiceRef.current && document) {
@@ -232,9 +240,16 @@ export function RicoEditor({
 
   return (
     <div 
-      className={`rico-editor h-screen w-full flex flex-col ${theme} ${className || ''}`}
+      className={`rico-editor min-h-screen h-full w-full flex flex-col ${theme} ${className || ''}`}
       style={{ 
-        backgroundColor: theme === 'dark' ? '#1f2937' : '#f8f9fa' 
+        backgroundColor: theme === 'dark' ? '#1f2937' : '#f8f9fa',
+        backgroundImage: theme === 'dark' 
+          ? `linear-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 1px),
+             linear-gradient(90deg, rgba(255, 255, 255, 0.15) 1px, transparent 1px)`
+          : `linear-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px),
+             linear-gradient(90deg, rgba(0, 0, 0, 0.08) 1px, transparent 1px)`,
+        backgroundSize: '50px 50px',
+        backgroundRepeat: 'repeat'
       }}
     >
       <Toolbar 
@@ -248,9 +263,11 @@ export function RicoEditor({
           lastSaved={state.lastSaved}
           isDirty={state.isDirty}
           editor={linearEditorRef.current?.editor}
+          title={state.documentTitle}
+          onTitleChange={handleTitleChange}
         />
       
-      <div className="flex-1 flex justify-center overflow-auto bg-gray-50 dark:bg-gray-900">
+      <div className="flex-1 flex justify-center overflow-auto">
         <div className="w-full max-w-4xl lg:max-w-5xl xl:max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
           <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg min-h-full">
             {state.mode === 'linear' ? (

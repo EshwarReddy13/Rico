@@ -7,4 +7,6 @@ export interface ToolbarProps {
   onSave?: () => void
   onClose?: () => Promise<void>
   editor?: any
+  title?: string
+  onTitleChange?: (title: string) => void
 } 

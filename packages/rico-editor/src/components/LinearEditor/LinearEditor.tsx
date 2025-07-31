@@ -26,7 +26,7 @@ export const LinearEditor = forwardRef<LinearEditorRef, LinearEditorProps>(({
 
   if (!isClient) {
     return (
-      <div className="linear-editor w-full h-full bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+      <div className="w-full h-full bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
         <div className="flex items-center justify-center h-full">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
         </div>
@@ -35,7 +35,7 @@ export const LinearEditor = forwardRef<LinearEditorRef, LinearEditorProps>(({
   }
 
   return (
-    <div className="linear-editor w-full h-full bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+    <div className="w-full h-full bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
       <TipTapEditor 
         ref={tipTapRef}
         content={content}

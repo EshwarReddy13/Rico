@@ -5,6 +5,7 @@ import { ModeToggle } from './components/ModeToggle'
 import { SaveIndicator } from './components/SaveIndicator'
 import { SaveButton } from './components/SaveButton'
 import { CloseButton } from './components/CloseButton'
+import { EditableTitle } from './components/EditableTitle'
 
 
 export function Toolbar({ 
@@ -15,21 +16,30 @@ export function Toolbar({
   onClose,
   lastSaved, 
   isDirty,
-  editor
+  editor,
+  title,
+  onTitleChange
 }: ToolbarProps) {
   return (
     <div
-      className="rico-toolbar border-b p-2 flex items-center justify-between"
-      style={{
-        backgroundColor: theme === 'dark' ? '#374151' : '#f8f9fa',
-        borderColor: theme === 'dark' ? '#4b5563' : '#dadce0'
-      }}
+      className="rico-toolbar border-b-2 pl-10 pr-10 pt-2 pb-2 flex items-center justify-between bg-white border-black"
     >
-      <div className="flex items-center gap-2">
+      {/* Left section - Format buttons */}
+      <div className="flex items-center gap-2 flex-1">
         <FormatButtons theme={theme} editor={editor} />
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* Middle section - Editable title */}
+      <div className="flex items-center justify-center flex-1">
+        <EditableTitle
+          title={title}
+          onTitleChange={onTitleChange}
+          theme={theme}
+        />
+      </div>
+
+      {/* Right section - Controls */}
+      <div className="flex items-center gap-2 flex-1 justify-end">
         <ModeToggle
           mode={mode}
           onModeChange={onModeChange}
@@ -48,7 +58,6 @@ export function Toolbar({
             theme={theme}
           />
         )}
-
       </div>
     </div>
   )

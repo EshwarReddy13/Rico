@@ -5,6 +5,10 @@ import Placeholder from '@tiptap/extension-placeholder'
 import Highlight from '@tiptap/extension-highlight'
 import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
+import { TextStyle } from '@tiptap/extension-text-style'
+import { FontFamily } from '@tiptap/extension-font-family'
+import { Color } from '@tiptap/extension-color'
+import { Extension } from '@tiptap/core'
 import Link from '@tiptap/extension-link'
 import Image from '@tiptap/extension-image'
 import CodeBlock from '@tiptap/extension-code-block'
@@ -21,10 +25,36 @@ interface TipTapEditorProps {
   placeholder?: string
   className?: string
 }
-
+  
 export interface TipTapEditorRef {
   editor: any
 }
+
+// Custom FontSize extension
+const FontSize = Extension.create({
+  name: 'fontSize',
+  addGlobalAttributes() {
+    return [
+      {
+        types: ['textStyle'],
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: element => element.style.fontSize.replace(/['"]+/g, ''),
+            renderHTML: attributes => {
+              if (!attributes.fontSize) {
+                return {}
+              }
+              return {
+                style: `font-size: ${attributes.fontSize}`,
+              }
+            },
+          },
+        },
+      },
+    ]
+  },
+})
 
 export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(({ 
   content, 
@@ -43,7 +73,17 @@ export const TipTapEditor = forwardRef<TipTapEditorRef, TipTapEditorProps>(({
       Placeholder.configure({
         placeholder,
       }),
-      Highlight,
+      TextStyle,
+      FontSize,
+      FontFamily.configure({
+        types: ['textStyle'],
+      }),
+      Color.configure({
+        types: ['textStyle'],
+      }),
+      Highlight.configure({
+        multicolor: true,
+      }),
       Underline,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
